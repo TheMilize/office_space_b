@@ -48,6 +48,24 @@ async function cleanupOldBookings() {
   }
 }
 
+// Функция для очистки просроченных выходных дней
+async function cleanupOldWeekends() {
+  try {
+    console.log('Запуск очистки просроченных выходных дней...');
+    const currentWeekStart = getCurrentWeekStart();
+    
+    // Удаляем выходные дни, которые относятся к прошедшим неделям
+    const result = await pool.query(
+      'DELETE FROM weekend_selections WHERE week_start < $1 RETURNING id',
+      [currentWeekStart]
+    );
+    
+    console.log(`Удалено ${result.rowCount} просроченных выходных дней`);
+  } catch (error) {
+    console.error('Ошибка при очистке просроченных выходных дней:', error);
+  }
+}
+
 // Функция для очистки ответов пользователей на еженедельные опросы
 async function cleanupSurveyResponses() {
   try {
@@ -74,6 +92,7 @@ async function cleanupSurveyResponses() {
 async function weeklyCleanup() {
   console.log('Выполнение еженедельной очистки данных...');
   await cleanupOldBookings();
+  await cleanupOldWeekends();
   await cleanupSurveyResponses();
   console.log('Еженедельная очистка данных завершена.');
 }
@@ -2607,4 +2626,46 @@ app.get("/api/user/survey-status", authenticateToken, async (req, res) => {
         console.error("Ошибка при получении результатов анализа:", error);
         res.status(500).json({ error: "Ошибка при получении результатов анализа" });
     }
+});
+
+// Эндпоинт для отмены утвержденного отпуска
+app.post('/api/admin/vacations/:id/cancel', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user.id;
+
+    // Проверяем существование отпуска и его статус
+    const vacation = await pool.query(
+      'SELECT * FROM vacation_periods WHERE id = $1',
+      [id]
+    );
+
+    if (vacation.rows.length === 0) {
+      return res.status(404).json({ error: 'Отпуск не найден' });
+    }
+
+    if (vacation.rows[0].status !== 'approved') {
+      return res.status(400).json({ error: 'Можно отменять только утвержденные отпуска' });
+    }
+
+    // Обновляем статус отпуска
+    await pool.query(
+      'UPDATE vacation_periods SET status = $1 WHERE id = $2',
+      ['pending', id]
+    );
+
+    // Логируем действие администратора
+    await logAdminAction(
+      adminId,
+      'cancel_vacation',
+      id,
+      'vacation',
+      `Отмена утвержденного отпуска пользователя ${vacation.rows[0].user_id}`
+    );
+
+    res.json({ message: 'Отпуск успешно отменен' });
+  } catch (error) {
+    console.error('Ошибка при отмене отпуска:', error);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
 });
