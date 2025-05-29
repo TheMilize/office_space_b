@@ -267,7 +267,7 @@ app.use((req, res, next) => {
 });
 
 //Регистрация пользователя — обработчик POST-запроса
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
     const { name, email, password } = req.body;
     
     console.log('Получен запрос на регистрацию:', { name, email });
@@ -311,7 +311,7 @@ app.post("/register", async (req, res) => {
 });
 
 //Логин пользователя — обработчик POST-запроса
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -373,7 +373,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Эндпоинт профиля
-app.get("/profile", authenticateToken, async (req, res) => {
+app.get("/api/profile", authenticateToken, async (req, res) => {
     try {
         console.log(req.user.userId)
         const { rows } = await pool.query(
