@@ -22,6 +22,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+server_log.txt
+*.log
 
 # IDE
 .idea/
@@ -74,5 +76,66 @@ Thumbs.db
 *.temp
 .cache/
 
-# package-lock.json
-package-lock.json 
+# Docker
+.docker/
+docker-compose.override.yml
+
+# База данных
+*.sqlite
+*.sqlite3
+*.db
+
+# Файлы конфигурации
+config.local.js
+config.dev.js
+
+# Файлы отладки
+debug.log
+debug/
+debug.log.*
+
+# Файлы сессий
+sessions/
+*.session
+
+# Файлы загрузок
+uploads/
+downloads/
+
+# Файлы кэша
+.cache/
+.temp/
+tmp/
+
+# Файлы сборки
+*.min.js
+*.min.css
+*.bundle.js
+*.chunk.js
+
+# Файлы тестов
+__tests__/
+__mocks__/
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+
+# Файлы документации
+docs/_build/
+site/
+
+# Файлы метрик и аналитики
+stats.html
+stats.json
+.nyc_output/
+
+# Файлы безопасности
+*.pem
+*.key
+*.cert
+*.crt
+*.csr
+*.srl
+
+# package-lock.json 
