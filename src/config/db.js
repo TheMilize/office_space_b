@@ -24,18 +24,6 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
         min: 0,
         acquire: 30000,
         idle: 10000
-    },
-    retry: {
-        max: 3,
-        match: [
-            /SequelizeConnectionError/,
-            /SequelizeConnectionRefusedError/,
-            /SequelizeHostNotFoundError/,
-            /SequelizeHostNotReachableError/,
-            /SequelizeInvalidConnectionError/,
-            /SequelizeConnectionTimedOutError/,
-            /TimeoutError/
-        ]
     }
 });
 
@@ -44,6 +32,7 @@ const testConnection = async (retries = 5, delay = 5000) => {
     for (let i = 0; i < retries; i++) {
         try {
             console.log(`Attempting to connect to database (attempt ${i + 1}/${retries})...`);
+            console.log(`Connecting to: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
             await sequelize.authenticate();
             console.log("✅ Connected to PostgreSQL successfully");
             return true;
