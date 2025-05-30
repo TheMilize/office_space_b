@@ -3,10 +3,12 @@ version: '3.8'
 services:
   frontend:
     build:
-      context: ./office_space_f
+      context: ../office_space_f
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    environment:
+      - NODE_ENV=production
     depends_on:
       - backend
     networks:
@@ -14,30 +16,46 @@ services:
 
   backend:
     build:
-      context: ./office_space_b
+      context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "5001:5001"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/office_space
+      - CORS_ORIGIN=http://localhost
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=office_space
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - JWT_SECRET=your_jwt_secret
     depends_on:
-      - mongodb
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
-  mongodb:
-    image: mongo:latest
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: office_space
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
-      - "27017:27017"
+      - "5433:5432"
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d office_space"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   app-network:
     driver: bridge
 
 volumes:
-  mongodb_data: 
+  postgres_data: 
